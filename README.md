@@ -1,0 +1,2 @@
+# ZeMovieQuizApp
+I'm making this application to show how i can use react native precisely expo to make an cross platform mobile app in order to get some collaboration with another developper far from me.It's just a game that use The Movie Database api to propose you an actor and a film and you have just to say if this actor has played in this firlm.Overall you have 60s to do the best score and after a bad answer you loose. 
