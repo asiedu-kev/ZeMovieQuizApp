@@ -16,7 +16,7 @@ export const MainNavigator = () => {
       <Stack.Screen
         name={"Game"}
         component={GameScreen}
-        options={{ headerShown: true }}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

@@ -1,12 +1,44 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import axios from "axios";
+import { API_BASE_URL, API_KEY } from "../constants/env";
 
 const GameScreen = () => {
   const [timer, setTimer] = useState(60);
-  setInterval(() => {
-    const time = timer - 1;
-    setTimer(time);
-  }, 2000);
+  const [actorId, setActorId] = useState(0);
+  const [movieId, setMovieId] = useState(0);
+  const [next, setNext] = useState(true);
+  const [actorData, setActorData] = useState(null);
+  const [movieData, setMovieData] = useState(null);
+
+  const getActor = async (id: Number) => {
+    await axios.get(`${API_BASE_URL}person/${id}?api_key=${API_KEY}`);
+  };
+  const getMovieCredit = async (id: Number) => {
+    await axios.get(`${API_BASE_URL}movie/${id}/credits?api_key=${API_KEY}`);
+  };
+  const getRandomInt = (min: number, max: number) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min;
+  };
+
+  const selectIds = () => {
+    const max = 50,
+      min = 1;
+    const id = getRandomInt(min, max);
+    setActorId(id);
+    setMovieId(id);
+  };
+
+  useEffect(() => {
+    selectIds();
+    if (actorId != 0 && movieId != 0) {
+      getActor(actorId).then((res) => console.log(res));
+      getMovieCredit(movieId).then((res) => console.log(res));
+    }
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
