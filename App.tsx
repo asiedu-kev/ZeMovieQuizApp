@@ -8,6 +8,7 @@ import { MainNavigator } from "./navigation";
 export default function App() {
   return (
     <NavigationContainer>
+      <StatusBar backgroundColor={"transparent"} hidden={true} />
       <MainNavigator />
     </NavigationContainer>
   );

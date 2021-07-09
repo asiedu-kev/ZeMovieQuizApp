@@ -3,12 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="7d671aeb-f1ce-44e3-8b20-44cfb155d0fb" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/constants/env.ts" beforeDir="false" afterPath="$PROJECT_DIR$/constants/env.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/navigation/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/navigation/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/screens/Game.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/screens/Game.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,7 +39,7 @@
       <workItem from="1625030099741" duration="15267000" />
       <workItem from="1625064557654" duration="1617000" />
       <workItem from="1625125738264" duration="1212000" />
-      <workItem from="1625514433508" duration="4153000" />
+      <workItem from="1625514433508" duration="4847000" />
     </task>
     <servers />
   </component>
