@@ -6,12 +6,23 @@ import { useNavigation } from "@react-navigation/native";
 import * as Font from "expo-font";
 import { useDispatch } from "react-redux";
 import PreferencesSlice from "../store/slices/preferences";
+import { API_BASE_URL, API_KEY } from "../constants/env";""
+import preferences from "../store/slices/preferences";
 
 const Home = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const play = () => {
-   // dispatch(preferencesSlice.actions.setPreferences({ }))
+    fetch(API_BASE_URL + 'configuration?api_key='+API_KEY, {
+      method: 'GET',
+      redirect: 'follow'
+    })
+    .then(response =>response.json())
+    .then(result=>{
+      dispatch(PreferencesSlice.actions.setPreferences({base_url: result?.images?.base_url, size: result?.images?.poster_sizes[3]}))
+    
+    })
+    .catch(error => console.log(error));
   }
   return (
     <SafeAreaView style={styles.container}>
@@ -21,7 +32,10 @@ const Home = () => {
       <View style={{ justifyContent: "center" }}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate("Game", navigation)}
+          onPress={() => {
+            play();
+            navigation.navigate("Game", navigation)}
+          }
         >
           <AntDesign name={"play"} size={35} color={"white"} />
         </TouchableOpacity>

@@ -13,8 +13,10 @@ const GameScreen = () => {
   const [next, setNext] = useState(true);
   const [actorData, setActorData] = useState(null);
   const [movieCreditsData, setMovieCreditsData] = useState(null);
-  const bestScore = useSelector((s :RootState) => s.preferences.bestScore);
- 
+  const bestScore = useSelector((s: RootState) => s.preferences.bestScore);
+  const image_base_url = useSelector((s: RootState) => s.preferences.base_url);
+  const image_width = useSelector((s: RootState) => s.preferences.size);
+
 
 
   /*const getActor = async (id: Number) => {
@@ -61,28 +63,28 @@ const GameScreen = () => {
 
   useEffect(() => {
     if (actorId != 0 && movieId != 0) {
-      fetch(API_BASE_URL + 'person/'+actorId+'?api_key='+API_KEY, {
-       method: 'GET',
-       redirect: 'follow'
-     })
-     .then(response =>response.json())
-     .then(result=>{
-       setActorData(result);
-     })
-     .catch(error => console.log(error));
+      fetch(API_BASE_URL + 'person/' + actorId + '?api_key=' + API_KEY, {
+        method: 'GET',
+        redirect: 'follow'
+      })
+        .then(response => response.json())
+        .then(result => {
+          setActorData(result);
+        })
+        .catch(error => console.log(error));
 
-     // call for movie
-     fetch(API_BASE_URL + 'movie/'+movieId+'/credits?api_key='+API_KEY, {
-       method: 'GET',
-       redirect: 'follow'
-     })
-     .then(response =>response.json())
-     .then(result=>{
-       setMovieCreditsData(result);
-     })
-     .catch(error => console.log(error));
-   }
-   console.log(actorData);
+      // call for movie
+      fetch(API_BASE_URL + 'movie/' + movieId + '/credits?api_key=' + API_KEY, {
+        method: 'GET',
+        redirect: 'follow'
+      })
+        .then(response => response.json())
+        .then(result => {
+          setMovieCreditsData(result);
+        })
+        .catch(error => console.log(error));
+    }
+    console.log(actorData);
   }, [actorId, movieId])
 
   return (
@@ -104,33 +106,37 @@ const GameScreen = () => {
       <View style={styles.roundView}>
         <Text style={styles.commonText}>Round 1</Text>
       </View>
-      <View style={{ flex: 1,justifyContent: 'center', alignItems: 'center'}}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         {
           next ? (
-            <View style={{backgroundColor: 'white', width: '90%', flexDirection: 'column'}}>
-            <View style={{ padding: 5}}>
-             <Text>L'acteur 
-              <Text style={styles.actorName}>{actorData?.name} </Text>
-               a joué dans le film<Text style={styles.filmName}> Barbecue forever</Text>
-              </Text>
-            </View>
-            <View style={{flexDirection: 'row'}}>
-              <TouchableOpacity style={{backgroundColor: 'green' ,flex: 1, padding: 15}}>
-                <Text style={styles.answer}>Oui</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={{backgroundColor: 'red', flex:1,  padding: 15}}>
-                <Text style={styles.answer}>Non</Text>
-              </TouchableOpacity>
-            </View>
-            <View/>
+            <View style={{ backgroundColor: 'white', width: '90%', flexDirection: 'column' }}>
+              <View style={{flex: 1, backgroundColor: 'white'}}>
+                  <Image source={{uri: image_base_url+ image_width+ actorData?.profile_path}} style={{flex: 1}} />
+              </View>
+              <View style={{ padding: 5 }}>
+                
+                <Text>L'acteur
+                  <Text style={styles.actorName}>{actorData?.name} </Text>
+                  a joué dans le film<Text style={styles.filmName}> Barbecue forever</Text>
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row' }}>
+                <TouchableOpacity style={{ backgroundColor: 'green', flex: 1, padding: 15 }}>
+                  <Text style={styles.answer}>Oui</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={{ backgroundColor: 'red', flex: 1, padding: 15 }}>
+                  <Text style={styles.answer}>Non</Text>
+                </TouchableOpacity>
+              </View>
+              <View />
             </View>
           ) : (
-            <TouchableOpacity onPress={() =>selectIds()} style={styles.button}>
-        <Text style={styles.buttonText}>Start</Text>
-      </TouchableOpacity>
+            <TouchableOpacity onPress={() => selectIds()} style={styles.button}>
+              <Text style={styles.buttonText}>Start</Text>
+            </TouchableOpacity>
           )
-        } 
-      </View>    
+        }
+      </View>
     </View>
   );
 };
@@ -185,11 +191,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-  actorName : {
+  actorName: {
     fontSize: 17,
     fontWeight: "bold",
   },
-  filmName : {
+  filmName: {
     fontSize: 20,
     fontWeight: "bold",
   }
