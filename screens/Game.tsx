@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
 import axios from "axios";
 import { API_BASE_URL, API_KEY } from "../constants/env";
+import { RootState } from "../store";
+import { useSelector } from "react-redux";
 
 
 const GameScreen = () => {
@@ -11,6 +13,7 @@ const GameScreen = () => {
   const [next, setNext] = useState(true);
   const [actorData, setActorData] = useState(null);
   const [movieCreditsData, setMovieCreditsData] = useState(null);
+  const bestScore = useSelector((s :RootState) => s.preferences.bestScore);
  
 
 
@@ -50,30 +53,37 @@ const GameScreen = () => {
     setActorId(id);
     setMovieId(id);
     setNext(true);
-    if (actorId != 0 && movieId != 0) {
-       fetch(API_BASE_URL + 'person/'+actorId+'?api_key='+API_KEY, {
-        method: 'GET',
-        redirect: 'follow'
-      })
-      .then(response =>response.json())
-      .then(result=>{
-        setActorData(result);
-      })
-      .catch(error => console.log(error));
-
-      // call for movie
-      fetch(API_BASE_URL + 'movie/'+movieId+'/credits?api_key='+API_KEY, {
-        method: 'GET',
-        redirect: 'follow'
-      })
-      .then(response =>response.json())
-      .then(result=>{
-        setMovieData(result);
-      })
-      .catch(error => console.log(error));
-    }
-    console.log(actorData);
   };
+
+  useEffect(() => {
+    selectIds();
+  }, [])
+
+  useEffect(() => {
+    if (actorId != 0 && movieId != 0) {
+      fetch(API_BASE_URL + 'person/'+actorId+'?api_key='+API_KEY, {
+       method: 'GET',
+       redirect: 'follow'
+     })
+     .then(response =>response.json())
+     .then(result=>{
+       setActorData(result);
+     })
+     .catch(error => console.log(error));
+
+     // call for movie
+     fetch(API_BASE_URL + 'movie/'+movieId+'/credits?api_key='+API_KEY, {
+       method: 'GET',
+       redirect: 'follow'
+     })
+     .then(response =>response.json())
+     .then(result=>{
+       setMovieCreditsData(result);
+     })
+     .catch(error => console.log(error));
+   }
+   console.log(actorData);
+  }, [actorId, movieId])
 
   return (
     <View style={styles.container}>
@@ -87,7 +97,7 @@ const GameScreen = () => {
         <View>
           <Text style={styles.commonText}>Meilleur Score</Text>
           <View>
-            <Text style={styles.commonText}>50</Text>
+            <Text style={styles.commonText}>{bestScore}</Text>
           </View>
         </View>
       </View>

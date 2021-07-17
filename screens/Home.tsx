@@ -4,9 +4,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AntDesign } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import * as Font from "expo-font";
+import { useDispatch } from "react-redux";
+import PreferencesSlice from "../store/slices/preferences";
 
 const Home = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const play = () => {
+   // dispatch(preferencesSlice.actions.setPreferences({ }))
+  }
   return (
     <SafeAreaView style={styles.container}>
       <View>
