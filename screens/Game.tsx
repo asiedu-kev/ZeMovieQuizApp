@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View, Image, ActivityIndicator } from "react-native";
 import axios from "axios";
 import { API_BASE_URL, API_KEY } from "../constants/env";
 import { RootState } from "../store";
@@ -10,38 +10,44 @@ const GameScreen = () => {
   const [timer, setTimer] = useState(60);
   const [actorId, setActorId] = useState(0);
   const [movieId, setMovieId] = useState(0);
-  const [next, setNext] = useState(true);
-  const [actorData, setActorData] = useState(null);
-  const [movieCreditsData, setMovieCreditsData] = useState(null);
+  const [next, setNext] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [actorData, setActorData] = useState();
+  const [moviesData, setMoviesData] = useState();
   const bestScore = useSelector((s: RootState) => s.preferences.bestScore);
   const image_base_url = useSelector((s: RootState) => s.preferences.base_url);
   const image_width = useSelector((s: RootState) => s.preferences.size);
 
+  const getData = () => {
+    if (next) {
+      fetch(API_BASE_URL + 'person/popular?api_key=' + API_KEY + '&page=', {
+        method: 'GET',
+        redirect: 'follow'
+      })
+        .then(response => response.json())
+        .then(result => {
+          setActorData(result?.results);
+        })
+        .catch(error => console.log(error));
 
+      // call for movie
+      fetch(API_BASE_URL + 'discover/movie?api_key=' + API_KEY + '&page=1', {
+        method: 'GET',
+        redirect: 'follow'
+      })
+        .then(response => response.json())
+        .then(result => {
+          setLoading(true);
+          setMoviesData(result?.results);
+          setLoading(false);
+        })
+        .catch(error => console.log(error));
+    }
+  }
+  useEffect(() => {
+    getData();
+  })
 
-  /*const getActor = async (id: Number) => {
-    await fetch(API_BASE_URL + 'person/'+id+'?api_key='+API_KEY, {
-      method: 'GET',
-      redirect: 'follow'
-    })
-    .then(response =>response.json())
-    .then(result=>{
-      setActorData(result);
-    })
-    .catch(error => console.log(error));
-  };
-
-  const getMovieCredit = async (id: Number) => {
-    await fetch(API_BASE_URL + 'movie/'+id+'/credits?api_key='+API_KEY, {
-      method: 'GET',
-      redirect: 'follow'
-    })
-    .then(response =>response.json())
-    .then(result=>{
-      setMovieData(result);
-    })
-    .catch(error => console.log(error));
-  };*/
   const getRandomInt = (min: number, max: number) => {
     min = Math.ceil(min);
     max = Math.floor(max);
@@ -49,43 +55,32 @@ const GameScreen = () => {
   };
 
   const selectIds = () => {
-    const max = 50,
+    const max = moviesData?.length,
       min = 1;
     const id = getRandomInt(min, max);
     setActorId(id);
     setMovieId(id);
-    setNext(true);
   };
 
-  useEffect(() => {
-    selectIds();
-  }, [])
+  const checkAnswer = () => {
+    setLoading(true);
+    setNext(false);
+    actorData?.[0]?.known_for.map((item) => {
+      if (item?.title == moviesData?.[0]?.title) {
+        selectIds();
+        setNext(true);
+      }
+    })
+  }
 
-  useEffect(() => {
-    if (actorId != 0 && movieId != 0) {
-      fetch(API_BASE_URL + 'person/' + actorId + '?api_key=' + API_KEY, {
-        method: 'GET',
-        redirect: 'follow'
-      })
-        .then(response => response.json())
-        .then(result => {
-          setActorData(result);
-        })
-        .catch(error => console.log(error));
-
-      // call for movie
-      fetch(API_BASE_URL + 'movie/' + movieId + '/credits?api_key=' + API_KEY, {
-        method: 'GET',
-        redirect: 'follow'
-      })
-        .then(response => response.json())
-        .then(result => {
-          setMovieCreditsData(result);
-        })
-        .catch(error => console.log(error));
-    }
-    console.log(actorData);
-  }, [actorId, movieId])
+  /* useEffect(() => {
+     selectIds();
+   }, [])
+ 
+   useEffect(() => {
+     
+     console.log(actorData);
+   }, [actorId, movieId])*/
 
   return (
     <View style={styles.container}>
@@ -108,33 +103,43 @@ const GameScreen = () => {
       </View>
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         {
-          next ? (
-            <View style={{ backgroundColor: 'white', width: '90%', flexDirection: 'column' }}>
-              <View style={{flex: 1, backgroundColor: 'white'}}>
-                  <Image source={{uri: image_base_url+ image_width+ actorData?.profile_path}} style={{flex: 1}} />
-              </View>
-              <View style={{ padding: 5 }}>
-                
-                <Text>L'acteur
-                  <Text style={styles.actorName}>{actorData?.name} </Text>
-                  a joué dans le film<Text style={styles.filmName}> Barbecue forever</Text>
-                </Text>
-              </View>
-              <View style={{ flexDirection: 'row' }}>
-                <TouchableOpacity style={{ backgroundColor: 'green', flex: 1, padding: 15 }}>
-                  <Text style={styles.answer}>Oui</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={{ backgroundColor: 'red', flex: 1, padding: 15 }}>
-                  <Text style={styles.answer}>Non</Text>
-                </TouchableOpacity>
-              </View>
-              <View />
-            </View>
-          ) : (
-            <TouchableOpacity onPress={() => selectIds()} style={styles.button}>
-              <Text style={styles.buttonText}>Start</Text>
-            </TouchableOpacity>
-          )
+          loading ?
+            (<View>
+              <ActivityIndicator size="small" color="white" />
+            </View>)
+            :
+            <>
+              {
+                next ? (
+                  <View style={{ backgroundColor: 'white', width: '90%', flexDirection: 'column' }}>
+                    <View style={{ flexDirection: 'row' }}>
+                      <Image source={{ uri: image_base_url + image_width + actorData?.[0]?.profile_path }} style={{ width: '50%', height: 300 }} />
+                      <Image source={{ uri: image_base_url + image_width + moviesData?.[0]?.poster_path }} style={{ width: '50%', height: 300 }} />
+                    </View>
+                    <View style={{ padding: 5 }}>
+
+                      <Text>L'acteur
+                        <Text style={styles.actorName}>{actorData?.[0]?.name} </Text>
+                        a joué dans le film<Text style={styles.filmName}> {moviesData?.[0]?.title}</Text>
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: 'row' }}>
+                      <TouchableOpacity style={{ backgroundColor: 'green', flex: 1, padding: 15 }}>
+                        <Text style={styles.answer}>Oui</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={{ backgroundColor: 'red', flex: 1, padding: 15 }}>
+                        <Text style={styles.answer}>Non</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View />
+                  </View>
+                ) : (
+                  <TouchableOpacity onPress={() => checkAnswer()} style={styles.button}>
+                    <Text style={styles.buttonText}>Start</Text>
+                  </TouchableOpacity>
+                )
+              }
+            </>
         }
       </View>
     </View>
