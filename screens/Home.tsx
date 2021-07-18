@@ -20,7 +20,7 @@ const Home = () => {
     .then(response =>response.json())
     .then(result=>{
       dispatch(PreferencesSlice.actions.setPreferences({base_url: result?.images?.base_url, size: result?.images?.poster_sizes[3]}))
-    
+
     })
     .catch(error => console.log(error));
   }
@@ -34,7 +34,7 @@ const Home = () => {
           style={styles.button}
           onPress={() => {
             play();
-            navigation.navigate("Game", navigation)}
+            navigation.navigate("Game")}
           }
         >
           <AntDesign name={"play"} size={35} color={"white"} />

@@ -5,6 +5,11 @@ import { API_BASE_URL, API_KEY } from "../constants/env";
 import { RootState } from "../store";
 import { useSelector } from "react-redux";
 
+//// TODO: version simpliste du jeux
+// ecrire une fonction qui fetch des fims et des acteurs et crée un ensemble de question
+//sauvegarder ces questions(avec leur réponses) dans redux
+// afficher la première question et permettre d'aller à la suivante uniquement si la réponse est bonne
+//sauvegarder le score
 
 const GameScreen = () => {
   const [timer, setTimer] = useState(60);
@@ -18,8 +23,9 @@ const GameScreen = () => {
   const image_base_url = useSelector((s: RootState) => s.preferences.base_url);
   const image_width = useSelector((s: RootState) => s.preferences.size);
 
+//// TODO: ameliorer cette fonction et idealement la mettre en tant qu'action redux (plus tard)
   const getData = () => {
-    if (next) {
+
       fetch(API_BASE_URL + 'person/popular?api_key=' + API_KEY + '&page=', {
         method: 'GET',
         redirect: 'follow'
@@ -42,11 +48,13 @@ const GameScreen = () => {
           setLoading(false);
         })
         .catch(error => console.log(error));
-    }
+    //}
   }
+  //getData est appelé une seule fois avec cette syntaxe
   useEffect(() => {
     getData();
-  })
+
+  },[])
 
   const getRandomInt = (min: number, max: number) => {
     min = Math.ceil(min);
@@ -61,24 +69,29 @@ const GameScreen = () => {
     setActorId(id);
     setMovieId(id);
   };
-
+  //not used
+  //la verification de si la réponse est bonne ou pas ne doit pas être fait lorsque l'utilisateur 
+  //click oui ou non. le check doit être fait en amont pendant que tu crée la liste des questions
+  //sinon le jeux ne sera jamais fluide
   const checkAnswer = () => {
-    setLoading(true);
-    setNext(false);
-    actorData?.[0]?.known_for.map((item) => {
-      if (item?.title == moviesData?.[0]?.title) {
-        selectIds();
-        setNext(true);
-      }
-    })
+    //setLoading(true);
+
+    setNext(true);
+    // actorData?.[0]?.known_for.map((item) => {
+    //   if (item?.title == moviesData?.[0]?.title) {
+    //     selectIds();
+    //     setNext(true);
+    //   }
+    // })
+
   }
 
   /* useEffect(() => {
      selectIds();
    }, [])
- 
+
    useEffect(() => {
-     
+
      console.log(actorData);
    }, [actorId, movieId])*/
 
@@ -109,8 +122,7 @@ const GameScreen = () => {
             </View>)
             :
             <>
-              {
-                next ? (
+
                   <View style={{ backgroundColor: 'white', width: '90%', flexDirection: 'column' }}>
                     <View style={{ flexDirection: 'row' }}>
                       <Image source={{ uri: image_base_url + image_width + actorData?.[0]?.profile_path }} style={{ width: '50%', height: 300 }} />
@@ -124,21 +136,16 @@ const GameScreen = () => {
                       </Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
-                      <TouchableOpacity style={{ backgroundColor: 'green', flex: 1, padding: 15 }}>
+                      <TouchableOpacity  style={{ backgroundColor: 'green', flex: 1, padding: 15 }}>
                         <Text style={styles.answer}>Oui</Text>
                       </TouchableOpacity>
-                      <TouchableOpacity style={{ backgroundColor: 'red', flex: 1, padding: 15 }}>
+                      <TouchableOpacity  style={{ backgroundColor: 'red', flex: 1, padding: 15 }}>
                         <Text style={styles.answer}>Non</Text>
                       </TouchableOpacity>
                     </View>
                     <View />
                   </View>
-                ) : (
-                  <TouchableOpacity onPress={() => checkAnswer()} style={styles.button}>
-                    <Text style={styles.buttonText}>Start</Text>
-                  </TouchableOpacity>
-                )
-              }
+
             </>
         }
       </View>
