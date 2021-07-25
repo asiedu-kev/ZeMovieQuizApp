@@ -3,7 +3,11 @@ import { StyleSheet, Text, TouchableOpacity, View, Image, ActivityIndicator } fr
 import axios from "axios";
 import { API_BASE_URL, API_KEY } from "../constants/env";
 import { RootState } from "../store";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { Colors } from "react-native/Libraries/NewAppScreen";
+import { EvilIcons, MaterialCommunityIcons } from "expo-vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import PreferencesSlice from "../store/slices/preferences";
 
 //// TODO: version simpliste du jeux
 // ecrire une fonction qui fetch des fims et des acteurs et crée un ensemble de question
@@ -12,6 +16,7 @@ import { useSelector } from "react-redux";
 //sauvegarder le score
 
 const GameScreen = () => {
+  const navigation = useNavigation();
   const [timer, setTimer] = useState(60);
   const [actorId, setActorId] = useState(0);
   const [movieId, setMovieId] = useState(0);
@@ -19,10 +24,41 @@ const GameScreen = () => {
   const [loading, setLoading] = useState(false);
   const [actorData, setActorData] = useState();
   const [moviesData, setMoviesData] = useState();
+  const [currentScore, setCurrentScore] = useState(0);
   const bestScore = useSelector((s: RootState) => s.preferences.bestScore);
   const image_base_url = useSelector((s: RootState) => s.preferences.base_url);
   const image_width = useSelector((s: RootState) => s.preferences.size);
+  const [answers, setAnswers] = useState([]);
+  const [answer, setAnswer]= useState(false);
+  const dispatch = useDispatch();
+  const [round, setRound] = useState(0);
 
+  const getRandomInt = (min: number, max: number) => {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min;
+  };
+
+  useEffect(() => {
+    if (next){
+      if (timer > 0) {
+        setTimeout(() => setTimer(timer - 1), 1000);
+      } else {
+        setNext(false);
+      }
+    } else {
+      setTimer(60);
+    }
+    
+  });
+
+  const selectIds = () => {
+    const max = moviesData?.length,
+      min = 1;
+    const id = getRandomInt(min, max);
+    setActorId(id);
+    setMovieId(id);
+  };
 //// TODO: ameliorer cette fonction et idealement la mettre en tant qu'action redux (plus tard)
   const getData = () => {
 
@@ -48,43 +84,72 @@ const GameScreen = () => {
           setLoading(false);
         })
         .catch(error => console.log(error));
+       
     //}
   }
+  /*const getAnswers =  () => {
+    const oldResponse = answers;
+    for (var i = 0; i<actorData?.length; i++) {
+      actorData?.[i]?.known_for.map((item) => {
+        if (item?.title == moviesData?.[i]?.title) {
+          const resp = 1;
+          oldResponse.push(resp);
+        }else {
+          const resp = 0;
+          oldResponse.push(resp);
+        }
+     })
+    }
+     setAnswers(oldResponse);
+  }*/
   //getData est appelé une seule fois avec cette syntaxe
   useEffect(() => {
     getData();
+    //getAnswers();
+    selectIds();
 
   },[])
 
-  const getRandomInt = (min: number, max: number) => {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min;
-  };
 
-  const selectIds = () => {
-    const max = moviesData?.length,
-      min = 1;
-    const id = getRandomInt(min, max);
-    setActorId(id);
-    setMovieId(id);
-  };
   //not used
   //la verification de si la réponse est bonne ou pas ne doit pas être fait lorsque l'utilisateur 
   //click oui ou non. le check doit être fait en amont pendant que tu crée la liste des questions
   //sinon le jeux ne sera jamais fluide
-  const checkAnswer = () => {
-    //setLoading(true);
-
-    setNext(true);
-    // actorData?.[0]?.known_for.map((item) => {
-    //   if (item?.title == moviesData?.[0]?.title) {
-    //     selectIds();
-    //     setNext(true);
-    //   }
-    // })
+  const checkAnswer = (userResponse: boolean) => {
+    setAnswer(false);
+    setLoading(true);
+    setNext(false);
+    actorData?.[actorId]?.known_for.map((item: { title: any; }) => {
+      if (item?.title == moviesData?.[movieId]?.title) {
+        setAnswer(true);
+      }
+    });
+    if (userResponse === answer) {
+      setNext(true);
+      selectIds();
+      setCurrentScore(currentScore+10);
+      setRound(round+1);
+      if (currentScore > bestScore) {
+        dispatch(PreferencesSlice.actions.setPreferences({bestScore: currentScore}))
+      }
+    }
+    else {
+      setNext(false);
+      console.log(false);
+    }
+    setLoading(false);
 
   }
+
+  const replay = () => {
+    setRound(0);
+    setCurrentScore(0);
+    setNext(true);
+    getData();
+    selectIds();
+  }
+
+ 
 
   /* useEffect(() => {
      selectIds();
@@ -112,7 +177,7 @@ const GameScreen = () => {
         </View>
       </View>
       <View style={styles.roundView}>
-        <Text style={styles.commonText}>Round 1</Text>
+        <Text style={styles.commonText}>Round {round +1}</Text>
       </View>
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         {
@@ -121,33 +186,65 @@ const GameScreen = () => {
               <ActivityIndicator size="small" color="white" />
             </View>)
             :
-            <>
+              next ? (
+                <>
 
-                  <View style={{ backgroundColor: 'white', width: '90%', flexDirection: 'column' }}>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Image source={{ uri: image_base_url + image_width + actorData?.[0]?.profile_path }} style={{ width: '50%', height: 300 }} />
-                      <Image source={{ uri: image_base_url + image_width + moviesData?.[0]?.poster_path }} style={{ width: '50%', height: 300 }} />
-                    </View>
-                    <View style={{ padding: 5 }}>
-
-                      <Text>L'acteur
-                        <Text style={styles.actorName}>{actorData?.[0]?.name} </Text>
-                        a joué dans le film<Text style={styles.filmName}> {moviesData?.[0]?.title}</Text>
-                      </Text>
-                    </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <TouchableOpacity  style={{ backgroundColor: 'green', flex: 1, padding: 15 }}>
-                        <Text style={styles.answer}>Oui</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity  style={{ backgroundColor: 'red', flex: 1, padding: 15 }}>
-                        <Text style={styles.answer}>Non</Text>
-                      </TouchableOpacity>
-                    </View>
-                    <View />
+                <View style={{ backgroundColor: 'white', width: '90%', flexDirection: 'column' }}>
+                  <View style={{ flexDirection: 'row' }}>
+                    <Image source={{ uri: image_base_url + image_width + actorData?.[actorId]?.profile_path }} style={{ width: '50%', height: 300 }} />
+                    <Image source={{ uri: image_base_url + image_width + moviesData?.[movieId]?.poster_path }} style={{ width: '50%', height: 300 }} />
                   </View>
+                  <View style={{ padding: 5 }}>
 
-            </>
-        }
+                    <Text>L'acteur
+                      <Text style={styles.actorName}> {actorData?.[actorId]?.name} </Text>
+                      a joué dans le film<Text style={styles.filmName}> {moviesData?.[movieId]?.title}</Text>
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row' }}>
+                    <TouchableOpacity  style={{ backgroundColor: 'green', flex: 1, padding: 15 }} onPress={() => checkAnswer(true)}>
+                      <Text style={styles.answer}>Oui</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity  style={{ backgroundColor: 'red', flex: 1, padding: 15 }} onPress={() => checkAnswer(false)}>
+                      <Text style={styles.answer}>Non</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View />
+                </View>
+
+          </>
+              ):
+                <>
+                <View>
+                  <View style={{backgroundColor: "#00008B", padding: 15, borderRadius: 10}}>
+                    <Text style={{color: 'white', fontSize: 18, fontWeight: 'bold' }}>Echec</Text>
+                  </View>
+                </View>
+                <View style={{padding: 15}}>
+                  {
+                    timer != 0 ? (
+                      <Text style={{color: 'white', fontSize: 15, fontWeight: 'bold'}}>Tu n'as pas eu raison !</Text>
+                    )        :
+                    <Text style={{color: 'white', fontSize: 15, fontWeight: 'bold'}}>Temps écoulé!</Text>          }
+              
+                <Text style={{color: 'white', fontSize: 15, fontWeight: 'bold'}}>Votre Score: {currentScore}</Text>
+                <Text style={{color: 'white', fontSize: 15, fontWeight: 'bold'}}>Meilleure Score: {bestScore}</Text>
+                <TouchableOpacity 
+                style={{backgroundColor: "#00008B", padding: 15, borderRadius: 10, marginVertical: '10%', justifyContent: 'center', alignItems: 'center'}}
+                onPress={() => replay()}
+                >
+                  <Text  style={{color: 'white', fontSize: 15}}>Rejouer</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                style={{backgroundColor: "#00008B", padding: 10, borderRadius: 10, marginVertical: '1%', justifyContent: 'center', alignItems: 'center'}}
+                onPress={() => navigation.goBack()}
+                >
+                  <EvilIcons name="arrow-left" size={40} color="white" />
+                </TouchableOpacity>
+                </View>
+                 
+                </>
+            }
       </View>
     </View>
   );
